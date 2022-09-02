@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.IO;
+using static System.Net.WebRequestMethods;
 using GeoCoordinatePortable;
+
 
 namespace LoggingKata
 {
@@ -12,48 +14,60 @@ namespace LoggingKata
 
         static void Main(string[] args)
         {
-            // TODO:  Find the two Taco Bells that are the furthest from one another.
-            // HINT:  You'll need two nested forloops ---------------------------
-
             logger.LogInfo("Log initialized");
+            var lines = System.IO.File.ReadAllLines(csvPath);
 
-            // use File.ReadAllLines(path) to grab all the lines from your csv file
-            // Log and error if you get 0 lines and a warning if you get 1 line
-            var lines = File.ReadAllLines(csvPath);
+            if (lines.Length == 0) 
+            {
+                Exception exception = new Exception("Csv file is empty");
+                logger.LogError("Error: ", exception);
 
-            logger.LogInfo($"Lines: {lines[0]}");
+            }
+            if (lines.Length == 1) 
+            {
+                Exception exception = new Exception("CSV file has only one line");
+                logger.LogWarning($"Warning line length : {lines.Length}");
+            }
 
-            // Create a new instance of your TacoParser class
             var parser = new TacoParser();
 
-            // Grab an IEnumerable of locations using the Select command: var locations = lines.Select(parser.Parse);
             var locations = lines.Select(parser.Parse).ToArray();
 
-            // DON'T FORGET TO LOG YOUR STEPS
+            Console.WriteLine();
+            Console.WriteLine();
+            logger.LogInfo($"Locations parsed. number of locations = {locations.Length}");
 
-            // Now that your Parse method is completed, START BELOW ----------
+            ITrackable tacoBellA = null;
+            ITrackable tacoBellB = null;
+            double distance = 0.0;
 
-            // TODO: Create two `ITrackable` variables with initial values of `null`. These will be used to store your two taco bells that are the farthest from each other.
-            // Create a `double` variable to store the distance
+            for (int i = 0; i < locations.Length; i++) 
+            {
+                var corA = locations[i].Location;
 
-            // Include the Geolocation toolbox, so you can compare locations: `using GeoCoordinatePortable;`
+                for (int j = 0; j < locations.Length; j++) 
+                {
+                   if (j != i) 
+                    {
+                        var corB = locations[j].Location;
+                        GeoCoordinate geo = new GeoCoordinate(corA.Latitude, corA.Longitude);
 
-            //HINT NESTED LOOPS SECTION---------------------
-            // Do a loop for your locations to grab each location as the origin (perhaps: `locA`)
+                        var furthest = geo.GetDistanceTo(new GeoCoordinate(corB.Latitude, corB.Longitude));
 
-            // Create a new corA Coordinate with your locA's lat and long
+                        if (furthest > distance) 
+                        {
+                            distance = furthest;
+                            tacoBellA = locations[i];
+                            tacoBellB = locations[j];
+                        }
+                    }
+                }
+            }
 
-            // Now, do another loop on the locations with the scope of your first loop, so you can grab the "destination" location (perhaps: `locB`)
+            Console.WriteLine();
+            Console.WriteLine();
 
-            // Create a new Coordinate with your locB's lat and long
-
-            // Now, compare the two using `.GetDistanceTo()`, which returns a double
-            // If the distance is greater than the currently saved distance, update the distance and the two `ITrackable` variables you set above
-
-            // Once you've looped through everything, you've found the two Taco Bells farthest away from each other.
-
-
-            
+            Console.WriteLine($"{tacoBellA.Name} and {tacoBellB.Name} are the furthest from each other");
         }
     }
 }

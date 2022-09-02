@@ -35,7 +35,7 @@ namespace LoggingKata
 
             Console.WriteLine();
             Console.WriteLine();
-            logger.LogInfo($"Locations parsed. number of locations = {locations.Length}");
+            logger.LogInfo($"Locations parsed: number of locations = {locations.Length}");
 
             ITrackable tacoBellA = null;
             ITrackable tacoBellB = null;
